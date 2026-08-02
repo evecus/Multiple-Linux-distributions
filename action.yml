@@ -219,7 +219,9 @@ runs:
             [[ -n "${{ inputs.armbian_size }}"    ]] && make_args+=(-s "${{ inputs.armbian_size }}")
             [[ -n "${builder_name}"               ]] && make_args+=(-n "${builder_name}")
             [[ -n "${{ inputs.output_name }}"     ]] && make_args+=(-o "${{ inputs.output_name }}")
-            sudo ./rebuild "${make_args[@]}"
+            # Invoke via `bash` so a missing executable bit on the checked-out file
+            # (common when the repo is committed from Windows) cannot break the build.
+            sudo bash ./rebuild "${make_args[@]}"
 
             cd ${{ github.action_path }}/${armbian_filepath}
             # Remove the decompressed input rootfs .img to free up space; the
@@ -314,7 +316,7 @@ runs:
             [[ -n "${{ inputs.docker_hostpath }}"  ]] && make_args+=(-h "${{ inputs.docker_hostpath }}")
             [[ -n "${{ inputs.docker_image }}"     ]] && make_args+=(-i "${{ inputs.docker_image }}")
             [[ -n "${kernel_sign}"                 ]] && make_args+=(-n "${kernel_sign}")
-            sudo ./recompile "${make_args[@]}"
+            sudo bash ./recompile "${make_args[@]}"
 
             cd ${{ inputs.docker_hostpath || github.action_path }}
             kernel_outpath="compile-kernel/output"
