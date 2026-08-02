@@ -4,8 +4,8 @@ setenv loadaddr "0x44000000"
 setenv devtype "mmc"
 setenv l_mmc "2 1 0"
 for devnum in ${l_mmc} ; do
-	if test -e ${devtype} ${devnum} uEnv.txt; then
-		load ${devtype} ${devnum} ${loadaddr} uEnv.txt
+	if test -e ${devtype} ${devnum} bootEnv.txt; then
+		load ${devtype} ${devnum} ${loadaddr} bootEnv.txt
 		env import -t ${loadaddr} ${filesize}
 		setenv bootargs ${APPEND}
 		if printenv mac; then
