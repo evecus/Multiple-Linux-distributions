@@ -1,0 +1,13 @@
+#!/sbin/openrc-run
+# TCN200 SATA LED monitor (OpenRC variant of tcn200-sata-leds.service)
+
+description="TCN200 SATA LED monitor"
+
+command="/usr/local/sbin/tcn200-sata-leds.sh"
+command_background="yes"
+pidfile="/run/${RC_SVCNAME}.pid"
+
+depend() {
+    need localmount
+    after bootmisc
+}

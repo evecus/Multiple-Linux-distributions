@@ -1,0 +1,18 @@
+#!/sbin/openrc-run
+# Apply IR keymap configuration - OpenRC variant of ir-keymap.service
+
+description="Apply IR keymap configuration"
+
+depend() {
+    need modules
+    after modules
+}
+
+start() {
+    ebegin "Applying IR keymap configuration"
+    if command -v ir-keytable >/dev/null 2>&1; then
+        /usr/bin/ir-keytable -c -w /etc/rc_keymaps/easepi_remote >/dev/null 2>&1
+        /usr/bin/ir-keytable -p nec >/dev/null 2>&1
+    fi
+    eend 0
+}

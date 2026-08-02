@@ -1,0 +1,84 @@
+#===========================================================================
+# Rename the boot env file uniformly to bootEnv.txt (and rebuild boot.scr)
+#
+# The u-boot env filename (uEnv.txt / armbianEnv.txt) is compiled into the
+# boot.scr / *_autoscript binaries, so a file rename alone breaks booting.
+# This workflow:
+#   1. installs u-boot-tools (mkimage)
+#   2. runs tools/rename-bootenv.sh over every bootfs directory in the three
+#      distro trees (renames the env file, rewrites the *.cmd / *.ini sources,
+#      and recompiles the script binaries)
+#   3. verifies no old filename references remain
+#   4. commits the result back to the current branch
+#
+# Trigger: manual (workflow_dispatch)
+#===========================================================================
+
+name: rename-bootenv
+
+on:
+  workflow_dispatch:
+
+env:
+  TZ: Etc/UTC
+
+jobs:
+  rename:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    name: rename-bootenv
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install u-boot-tools (mkimage)
+        run: |
+          sudo apt-get -y update
+          sudo apt-get -y install u-boot-tools
+          command -v mkimage
+          mkimage -V 2>&1 | head -n 1 || true
+
+      - name: Run the bootEnv.txt transformation
+        run: |
+          bash tools/rename-bootenv.sh
+
+      - name: Verify the transformation
+        run: |
+          set -e
+          # Every old-style filename must be gone from bootfs directories.
+          leftovers=$(grep -rl --binary-files=without-match \
+            -e 'uEnv\.txt' -e 'armbianEnv\.txt' \
+            build-armbian/*/platform-files build-armbian/*/different-files \
+            2>/dev/null || true)
+          if [[ -n "${leftovers}" ]]; then
+            echo "Old env filename references still present in:" >&2
+            echo "${leftovers}" >&2
+            exit 1
+          fi
+          bootenv_count=$(find build-armbian -type f -name 'bootEnv.txt' -o -name 'bootEnv.txt.dist' | wc -l)
+          echo "bootEnv.txt files: ${bootenv_count}"
+          [[ "${bootenv_count}" -gt 0 ]] || { echo "Error: no bootEnv.txt produced."; exit 1; }
+          # Sanity check the recompiled scripts are U-Boot legacy images.
+          sample="$(find build-armbian -type f \( -name 'boot.scr' -o -name 's905_autoscript' \) | head -n 1)"
+          if [[ -n "${sample}" ]]; then
+            magic="$(head -c 4 "${sample}" | od -An -tx1 | tr -d ' \n')"
+            echo "U-Boot magic of ${sample}: ${magic}"
+            [[ "${magic}" == "27051956" ]] || { echo "Error: not a U-Boot legacy image."; exit 1; }
+          fi
+
+      - name: Commit the changes
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "rename: unify boot env file to bootEnv.txt and rebuild boot.scr"
+          git push

@@ -1,0 +1,25 @@
+#!/sbin/openrc-run
+# Board-specific startup services for EasePi R2 (OpenRC variant of rc.local)
+# Runs balethirq, RTC sync and the infrared / bluetooth / wifi fix scripts once at boot.
+
+description="EasePi R2 board custom startup services"
+
+depend() {
+    need localmount
+    after modules
+    after NetworkManager
+    after chronyd
+}
+
+start() {
+    ebegin "Starting EasePi R2 custom services"
+    # RTC clock sync (HYM8563)
+    [ -c /dev/rtc0 ] && hwclock --hctosys >/dev/null 2>&1 &
+    # Interrupt load balancing
+    [ -x /usr/sbin/balethirq.pl ] && perl /usr/sbin/balethirq.pl >/dev/null 2>&1 &
+    # Infrared / bluetooth / wifi initialization
+    [ -x /usr/local/ir/fix_infrared.sh ] && /usr/local/ir/fix_infrared.sh >/dev/null 2>&1 &
+    [ -x /usr/local/bluetooth/fix_bluetooth.sh ] && /usr/local/bluetooth/fix_bluetooth.sh >/dev/null 2>&1 &
+    [ -x /usr/local/wifi/fix_wifi.sh ] && /usr/local/wifi/fix_wifi.sh >/dev/null 2>&1 &
+    eend 0
+}

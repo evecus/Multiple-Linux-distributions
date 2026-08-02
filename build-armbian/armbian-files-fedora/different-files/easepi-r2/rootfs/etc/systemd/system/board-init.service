@@ -1,0 +1,18 @@
+[Unit]
+Description=EasePi R2 board custom startup services (bluetooth / wifi / ir init)
+After=network.target NetworkManager.service
+Wants=NetworkManager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/ir/fix_infrared.sh
+ExecStart=/usr/local/bluetooth/fix_bluetooth.sh
+ExecStart=/usr/local/wifi/fix_wifi.sh
+ExecStart=/usr/bin/bash -c "perl /usr/sbin/balethirq.pl >/dev/null 2>&1"
+ExecStart=/usr/bin/bash -c "[ -c /dev/rtc0 ] && hwclock --hctosys >/dev/null 2>&1"
+RemainAfterExit=yes
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

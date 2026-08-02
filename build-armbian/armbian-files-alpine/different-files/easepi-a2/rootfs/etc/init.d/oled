@@ -1,0 +1,23 @@
+#!/sbin/openrc-run
+# EasePi A2 OLED Display (Go) - OpenRC variant of oled.service
+
+description="EasePi A2 OLED Display (Go)"
+
+command="/usr/local/oled/oled"
+command_background="yes"
+command_user="root"
+pidfile="/run/${RC_SVCNAME}.pid"
+
+depend() {
+    need localmount
+    after modules
+}
+
+start_pre() {
+    # Only run when the OLED i2c device exists
+    if [ ! -e /dev/i2c-3 ]; then
+        eerror "OLED device /dev/i2c-3 not found, skipping"
+        return 0
+    fi
+    return 0
+}
