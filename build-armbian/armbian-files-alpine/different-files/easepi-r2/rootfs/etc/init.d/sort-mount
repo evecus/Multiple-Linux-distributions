@@ -1,0 +1,15 @@
+#!/sbin/openrc-run
+# Bind mount injected sort JS over original - OpenRC variant of sort-mount.service
+
+description="Bind mount injected sort JS over original"
+
+depend() {
+    need net
+    after bootmisc
+}
+
+start() {
+    ebegin "Injecting sort JS"
+    /usr/local/bin/sync_sort.sh
+    eend $?
+}

@@ -1,0 +1,13 @@
+#!/sbin/openrc-run
+# On-demand sort cache trigger via nginx access log monitoring - OpenRC variant of sort-sync-access.service
+
+description="On-demand sort cache trigger via nginx access log monitoring"
+
+command="/usr/local/bin/sort_sync_access.sh"
+command_background="yes"
+pidfile="/run/${RC_SVCNAME}.pid"
+
+depend() {
+    need net
+    after bootmisc
+}

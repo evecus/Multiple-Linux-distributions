@@ -1,0 +1,15 @@
+[Unit]
+Description=EasePi board custom startup services (bluetooth / wifi init)
+After=network.target NetworkManager.service
+Wants=NetworkManager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bluetooth/fix_bluetooth.sh
+ExecStart=/usr/local/wifi/fix_wifi.sh
+RemainAfterExit=yes
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

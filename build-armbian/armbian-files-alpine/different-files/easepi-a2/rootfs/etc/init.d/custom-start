@@ -1,0 +1,19 @@
+#!/sbin/openrc-run
+# Board-specific startup services for EasePi A2 (OpenRC variant of rc.local)
+# Runs the bluetooth / wifi fix scripts once at boot.
+
+description="EasePi A2 board custom startup services"
+
+depend() {
+    need localmount
+    after modules
+    after NetworkManager
+    after chronyd
+}
+
+start() {
+    ebegin "Starting EasePi A2 custom services"
+    [ -x /usr/local/bluetooth/fix_bluetooth.sh ] && /usr/local/bluetooth/fix_bluetooth.sh >/dev/null 2>&1 &
+    [ -x /usr/local/wifi/fix_wifi.sh ] && /usr/local/wifi/fix_wifi.sh >/dev/null 2>&1 &
+    eend 0
+}

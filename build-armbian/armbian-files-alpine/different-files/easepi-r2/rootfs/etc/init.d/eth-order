@@ -1,0 +1,14 @@
+#!/sbin/openrc-run
+# EasePi Ethernet Interface Order - OpenRC variant of eth-order.service
+
+description="EasePi Ethernet Interface Order"
+
+depend() {
+    need sysfs
+}
+
+start() {
+    ebegin "Reordering Ethernet interfaces"
+    /usr/local/sbin/eth-order.sh
+    eend $?
+}

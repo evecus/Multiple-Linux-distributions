@@ -1,0 +1,16 @@
+#!/sbin/openrc-run
+# Set Ethernet interfaces as default gateway with priority - OpenRC variant of set-default-gateway.service
+
+description="Set Ethernet interfaces as default gateway with priority"
+
+depend() {
+    need net
+    after NetworkManager
+    after dhcpcd
+}
+
+start() {
+    ebegin "Setting Ethernet default gateway priority"
+    /usr/local/bin/set_default_gateway.sh
+    eend $?
+}
